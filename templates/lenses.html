@@ -1,0 +1,82 @@
+{% extends "main.html" %}
+{% block title %}Search Results - Share A Lens{% endblock %}
+{% block content %}
+	<!-- Navigation -->
+	<nav class="navbar navbar-default navbar-white bottom-20">
+		{% include 'navbar.html' %}
+	</nav>
+	<!-- End Navigation -->
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-sm-3 col-md-2 search-advanced">
+				<ul class="search-options">
+					<li class="search-title">Brand</li>
+					<li class="search-all">
+						<a href="{{url_for(request.endpoint)}}?brand=all&amp;style={{ request.args.get('style') }}">
+							<input type="radio" onclick='window.location.assign("{{url_for(request.endpoint)}}?brand=all&amp;style={{ request.args.get('style') }}")' {% if request.args.get('brand') == 'all' %}checked{% endif %}> &nbsp;All
+						</a>
+					</li>
+					{% for brand in brands %}
+						{% set currentBrand = request.args.get('brand') %}
+						<li>
+							<a href="{{url_for(request.endpoint)}}?brand={{brand}}&amp;style={{ request.args.get('style') }}">
+								<input type="radio" onclick='window.location.assign("{{url_for(request.endpoint)}}?brand={{brand}}&amp;style={{ request.args.get('style') }}")' {% if brand == currentBrand %}checked{% endif %}> &nbsp;{{brand}}
+							</a>
+						</li>
+					{% endfor %}
+				</ul>
+				<ul class="search-options">
+					<li class="search-title">Lens Type</li>
+					<li class="search-all">
+						<a href="{{url_for(request.endpoint)}}?brand={{ request.args.get('brand') }}&amp;style=all">
+							<input type="radio" onclick='window.location.assign("{{url_for(request.endpoint)}}?brand={{ request.args.get('brand') }}&amp;style=all")' {% if request.args.get('style') == 'all' %}checked{% endif %}> &nbsp;All
+						</a>
+					</li>
+					{% for style in styles %}
+						{% set currentStyle = request.args.get('style') %}
+						<li>
+							<a href="{{url_for(request.endpoint)}}?brand={{ request.args.get('brand') }}&amp;style={{style}}">
+								<input type="radio" onclick='window.location.assign("{{url_for(request.endpoint)}}?brand={{ request.args.get('brand') }}&amp;style={{style}}")' {% if style == currentStyle %}checked{% endif %}> &nbsp;{{style}}
+							</a>
+						</li>
+					{% endfor %}
+				</ul>
+			</div>
+			<div class="col-sm-9 col-md-10">
+				<div class="row search-results">
+					<h2 class="text-center">Search Results</h2>
+				</div>
+				{% if rows > 0 %}
+				<div class="row search-results">
+					<div class="col-sm-6">
+						{{ pagination.info }}
+					</div>
+					<div class="col-sm-6">
+						{{ pagination.links }}
+					</div>
+				</div>
+				<div class="row result-row search-results">			
+					{% for lens in lenses %}
+						<div class="search-result col-sm-4">
+							<a href="{{url_for('showLens', lens_id = lens.id)}}" class="lens-link">
+								{% if lens.picture != None %}<img src="static/lens-img/{{lens.picture}}" class="img-responsive search-img">{% endif %}
+								<p class="lens-name-sm">{{lens.name}}</p>
+							</a>
+						</div>
+						{% if loop.last != true %}
+							{% if loop.index % 3 == 0 %}
+								</div>
+								<div class="row result-row search-results">
+							{% endif %}
+						{% endif %}
+					{% endfor %}
+				</div>
+				{% else %}
+					<p class="no-results text-center">Oops!  We didn't find any lenses matching your search request.</p>
+				{% endif %}
+				{{ pagination.links }}
+			</div>
+		</div>
+	</div>
+	{% include 'footer.html' %}
+{% endblock %}

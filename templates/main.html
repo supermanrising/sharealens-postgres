@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+	<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+	<title>{% block title %}{% endblock %}</title>
+
+	<!-- Google Fonts -->
+	<link href="https://fonts.googleapis.com/css?family=Lato:400,300,100,700,900,300italic,400italic,700italic,900italic" rel="stylesheet">
+	<link href='https://fonts.googleapis.com/css?family=Roboto:700,500,400,300' rel='stylesheet' type='text/css'>
+	<link href='https://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
+
+	<!-- Open Graph Meta Tags -->
+	<meta property="og:url" content="http://www.sharealens.com/">
+	<meta property="og:title" content="Share A Lens">
+	<meta property="og:description" content="Borrow a lens from a local photographer">
+	<!--<meta property="og:image" content="">-->
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script src="//apis.google.com/js/platform.js?onload=start"> </script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	{% block customScripts %}{% endblock %}
+</head>
+<body>
+	{% block content %}
+	{% endblock %}
+	<!-- Modal -->
+	<div class="modal fade" id="login" tabindex="-1" role="dialog" aria-labelledby="loginModal">
+		<div class="vertical-alignment-helper">
+			<div class="  modal-lg vertical-align-center" role="document">
+				<div class="modal-content">
+					<div class="modal-body">
+						<div class="container-fluid">
+							<div class="row">
+								<div class="col-xs-12">
+									<h2 class="modal-heading" id="modal-heading">Welcome Back!</h2>
+									<h3 class="text-center modal-sub">Sign in to your Share-A-Lens Account</h3>
+								</div>
+							</div>
+							<div class="row login-buttons">
+								<div class="col-xs-6">
+									<!-- GOOGLE PLUS SIGN IN BUTTON-->
+									<div id="googleSignIn">
+										<span class="g-signin"
+											data-scope="openid email"
+											data-clientid="192035675258-r99mge6ebblsl9m51m1nbjhf3cs6r7j2.apps.googleusercontent.com"
+											data-redirecturi="postmessage"
+											data-accesstype="offline"
+											data-cookiepolicy="single_host_origin"
+											data-callback="signInCallback"
+											data-approvalprompt="force"
+											data-theme="dark">
+										</span>
+									</div>
+									<!--END GOOGLE PLUS SIGN IN BUTTON -->
+								</div>
+								<div class="col-xs-6">
+									<a href="javascript:sendTokenToServer()" class="fb-login"><span class="fb-text">Sign in</span></a>
+  								</div>
+							</div>
+						</div>
+					</div>
+					<div class="login-footer">
+						<p onclick="setSignUp()">New to Share-A-Lens?  <u>Create an account</u></p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- GOOGLE PLUS SIGN IN CALLBACK -->
+	<script>
+		var state;
+		var next;
+		function generateState(url) {
+			$.ajax({
+				type: 'GET',
+				url: '/getState',
+				contentType: 'application/octet-stream; charset=utf-8',
+				success: function(result) {
+					state = result;
+				}
+			});
+			next = url;
+		}
+
+		function setSignUp() {
+			$('#modal-heading').text('Sign up to use all of Share-A-Lens');
+			$('.modal-sub').text('Sign up to rent lenses or make money of your camera gear.')
+			$('.login-footer').html('<p onclick="setLogin()">Already have an account? <u>Login</u></p>')
+			$('.login-buttons').attr('style', 'display: block');
+			$('.login-footer').attr('style', 'display: block');
+		}
+
+		function setLogin() {
+			$('#modal-heading').text('Welcome Back!');
+			$('.modal-sub').text('Sign in to your Share-A-Lens Account.')
+			$('.login-footer').html('<p onclick="setSignUp()">New to Share-A-Lens?  <u>Create an account</u></p>')
+			$('.login-buttons').attr('style', 'display: block');
+			$('.login-footer').attr('style', 'display: block');
+		}
+
+		function signInCallback(authResult) {
+			if (authResult.code) {
+				// Hide the sign-in button now that the user is authorized
+				$('.login-buttons').attr('style', 'display: none');
+				$('.login-footer').attr('style', 'display: none');
+				$('#modal-heading').attr('style', 'margin-bottom: 50px');
+				$('#modal-heading').text('Please Wait...');
+				$('.modal-sub').attr('style', 'display: none');
+				// Send the one-time-use code to the server, if the server responds, write a 'login successful' message to the web page and then redirect back to the main restaurants page
+				$.ajax({
+					type: 'POST',
+					url: '/gconnect?state=' + state,
+					processData: false,
+					data: authResult.code,
+					contentType: 'application/octet-stream; charset=utf-8',
+					success: function(result) {
+						console.log(result);
+						// Handle or verify the server response if necessary.
+						if (result) {
+							$('#modal-heading').attr('style', 'margin-bottom: 20px');
+							$('#modal-heading').text('Login Successful!');
+							$('.modal-sub').attr('style', 'display: block');
+							$('.modal-sub').text('Redirecting...');
+							setTimeout(function() {
+								window.location.href = next;
+							}, 3000);
+						}
+					}
+				});
+			} else if (authResult.error) {
+				console.log('There was an error: ' + authResult.error);
+				$('.login-buttons').attr('style', 'display: none');
+				$('.login-footer').attr('style', 'display: none');
+				$('#modal-heading').attr('style', 'margin-bottom: 20px');
+				$('#modal-heading').text('Oops!');
+				$('.modal-sub').attr('style', 'display: block');
+				$('.modal-sub').text('Something went wrong.  Please try again.');
+			} else {
+				$('.login-buttons').attr('style', 'display: none');
+				$('.login-footer').attr('style', 'display: none');
+				$('#modal-heading').attr('style', 'margin-bottom: 20px');
+				$('#modal-heading').text('Oops!');
+				$('.modal-sub').attr('style', 'display: block');
+				$('.modal-sub').text('Something went wrong.  Please try again.');
+			}
+		}
+	</script>
+	<script>
+		window.fbAsyncInit = function() {
+			FB.init({
+				appId		: '174653162891010',
+				cookie 		:true,  // enable cookies to allow the server to access 
+									// the session
+				xfbml		: true,  // parse social plugins on this page
+				version		: 'v2.2' // use version 2.2
+			});
+		};
+				
+		// Load the SDK asynchronously
+		(function(d, s, id) {
+			var js, fjs = d.getElementsByTagName(s)[0];
+			if (d.getElementById(id)) return;
+			js = d.createElement(s); js.id = id;
+			js.src = "//connect.facebook.net/en_US/sdk.js";
+			fjs.parentNode.insertBefore(js, fjs);
+		}(document, 'script', 'facebook-jssdk'));
+				
+		// Here we run a very simple test of the Graph API after login is
+		// successful.  See statusChangeCallback() for when this call is made.
+		function sendTokenToServer() {
+			FB.login(function(response) {
+				if (response.authResponse) {
+					var access_token = FB.getAuthResponse()['accessToken'];
+					$('.login-buttons').attr('style', 'display: none');
+					$('.login-footer').attr('style', 'display: none');
+					$('#modal-heading').attr('style', 'margin-bottom: 50px');
+					$('#modal-heading').text('Please Wait...');
+					$('.modal-sub').attr('style', 'display: none');
+
+					FB.api('/me', function(response) {
+						console.log('Successful login for: ' + response.name);
+						$.ajax({
+							type: 'POST',
+							url: '/fbconnect?state=' + state,
+							processData: false,
+							data: access_token,
+							contentType: 'application/octet-stream; charset=utf-8',
+							success: function(result) {
+								// Handle or verify the server response if necessary.
+								if (result) {
+									$('#modal-heading').attr('style', 'margin-bottom: 20px');
+									$('#modal-heading').text('Login Successful!');
+									$('.modal-sub').attr('style', 'display: block');
+									$('.modal-sub').text('Redirecting...');
+									setTimeout(function() {
+										window.location.href = next;
+									}, 3000);
+								} else {
+									$('#modal-heading').attr('style', 'margin-bottom: 20px');
+									$('#modal-heading').text('Oops!');
+									$('.modal-sub').attr('style', 'display: block');
+									$('.modal-sub').text('Something went wrong.  Please try again.');
+								}
+							}
+						});
+					});
+				} else {
+					$('.login-buttons').attr('style', 'display: none');
+					$('.login-footer').attr('style', 'display: none');
+					$('#modal-heading').attr('style', 'margin-bottom: 20px');
+					$('#modal-heading').text('Oops!');
+					$('.modal-sub').attr('style', 'display: block');
+					$('.modal-sub').text('Something went wrong.  Please try again.');
+				}
+			}, {
+				scope: 'public_profile,email'
+			});
+		}
+	</script>
+</body>
+</html>
