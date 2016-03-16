@@ -65,7 +65,7 @@ class Rental(Base):
     lens = relationship(Lens)
 
 
-engine = create_engine('sqlite:///sharealens.db')
+engine = create_engine('postgresql://sharealens:salpass@localhost/sharealens')
 
 
 Base.metadata.create_all(engine)

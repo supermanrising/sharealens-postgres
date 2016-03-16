@@ -32,7 +32,7 @@ CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())[
         'web']['client_id']
 APPLICATION_NAME = 'Share A Lens'
 
-engine = create_engine('sqlite:///sharealens.db')
+engine = create_engine('postgresql://sharealens:salpass@localhost/sharealens')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)

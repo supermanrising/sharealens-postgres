@@ -5,7 +5,7 @@ from database_setup import Base, Lens, User, Rental
 
 import datetime
 
-engine = create_engine('sqlite:///sharealens.db')
+engine = create_engine('postgresql://sharealens:salpass@localhost/sharealens')
 # Bind the engine to the metadata of the Base class so that the
 # declaratives can be accessed through a DBSession instance
 Base.metadata.bind = engine
